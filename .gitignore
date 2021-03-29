@@ -1,0 +1,7 @@
+*.xml
+web_crawler/.idea/web_crawler.iml
+web_crawler/venv/
+*.pyc
+web_crawler/users/migrations/
+web_crawler/.env
+venv
