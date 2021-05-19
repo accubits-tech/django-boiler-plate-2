@@ -13,13 +13,14 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db.models import Sum, Count
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import status, exceptions
 from rest_framework import viewsets
 from rest_framework.response import Response
 
 from authentication.authentication import JwtTokensAuthentication
 import logging
 
+from jwt_utils.jwt_validator import jwt_validator, refresh_token_validator
 from users.models import Token, UserSearch, UserBookmark, UserNote, UserNotification
 from jwt_utils.jwt_generator import jwt_generator
 from web_crawler import settings
@@ -44,7 +45,7 @@ from .serializers import (
     UserNotesSerializer,
     MonitorySerializer,
     UserNotificationsSerializer,
-)
+    RefreshTokenSerializer)
 
 logging.config.dictConfig({
     'version': 1,
@@ -66,7 +67,7 @@ logging.config.dictConfig({
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'formatter': 'file',
-            'filename': '/tmp/debug.log'
+            'filename': 'debug.log'
         }
     },
     'loggers': {
@@ -370,6 +371,73 @@ class ChangePasswordViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.error(e)
             print(e)
+            return Response({"code": 114, "message": get_message(114)})
+
+
+class RefreshTokenViewSet(viewsets.ModelViewSet):
+    permission_classes = ()
+    authentication_classes = (JwtTokensAuthentication,)
+    serializer_class = RefreshTokenSerializer
+
+    def create(self, request, *args, **kwargs):
+        user_id = request.user.get("user_id")
+        refresh_token = request.data.get("refresh_token", "")
+        try:
+            user_obj = get_user_model().objects.get(pk=user_id)
+        except ObjectDoesNotExist as ex:
+            logger.error(ex)
+            return Response(
+                {"code": 204, "message": get_message(204)},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+
+        payload = refresh_token_validator(refresh_token)
+        if not payload:
+            return Response(
+                {"code": 401, "message": get_message(401)},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        if payload and payload.get("type", "") != "refresh":
+            return Response(
+                {"code": 505, "message": get_message(505)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            access_token = jwt_generator(
+                user_obj.id,
+                settings.JWT_SECRET,
+                settings.TOKEN_EXPIRY,
+                "access",
+                user_obj.is_superuser,
+            )
+            refresh_token = jwt_generator(
+                user_obj.id,
+                settings.JWT_SECRET,
+                settings.REFRESH_TOKEN_EXPIRY,
+                "refresh",
+                user_obj.is_superuser,
+            )
+            Token.objects.filter(user_id=user_obj).update(is_expired=1)
+
+            Token.objects.update_or_create(
+                user_id=user_obj,
+                access_token=access_token,
+                refresh_token=refresh_token,
+                defaults={"updated_at": datetime.now()},
+            )
+            return Response(
+
+                {
+                    "code": 200,
+                    "message": get_message(200),
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                    "user_id": user_obj.pk,
+                    "email": user_obj.email,
+                }
+            )
+        except Exception as ex:
+            logger.error(ex)
             return Response({"code": 114, "message": get_message(114)})
 
 

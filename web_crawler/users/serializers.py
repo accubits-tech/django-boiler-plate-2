@@ -60,6 +60,10 @@ class ResetPasswordSerializer(serializers.Serializer):
     token = serializers.CharField(max_length=1000)
 
 
+class RefreshTokenSerializer(serializers.Serializer):
+
+    refresh_token = serializers.CharField(max_length=1000)
+
 class ImageSerializer(serializers.Serializer):
     pass
 

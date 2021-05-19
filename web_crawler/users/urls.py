@@ -32,7 +32,7 @@ from .views import (
     MonitoryViewSet,
     UserNotificationsViewSet,
     PlatformSearchViewSet,
-)
+    RefreshTokenViewSet)
 
 router = DefaultRouter(trailing_slash=False)
 
@@ -42,6 +42,7 @@ router.register(r"user", UserViewSet, basename="user")
 router.register(r"logout", LogoutViewSet, basename="logout")
 router.register(r"forgot-password", ForgotPasswordViewSet, basename="forgot-password")
 router.register(r"reset-password", ResetPasswordViewSet, basename="reset-password")
+router.register(r"refresh-token", RefreshTokenViewSet, basename="refresh-token")
 router.register(r"image-upload", UploadImageViewSet, basename="image-upload")
 router.register(r"change-password", ChangePasswordViewSet, basename="change-password")
 router.register(r"user-search", UserSearchViewSet, basename="user-search")
