@@ -2,7 +2,6 @@ import os
 import uuid
 from datetime import datetime, timedelta
 from threading import Thread
-from django.utils.dateparse import parse_date
 
 import requests
 from basicauth import decode
@@ -12,19 +11,18 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db.models import Sum, Count
-from django.utils import timezone
-from rest_framework import status, exceptions
+from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 
 from authentication.authentication import JwtTokensAuthentication
 import logging
 
-from jwt_utils.jwt_validator import jwt_validator, refresh_token_validator
+from jwt_utils.jwt_validator import refresh_token_validator
 from users.models import Token, UserSearch, UserBookmark, UserNote, UserNotification
 from jwt_utils.jwt_generator import jwt_generator
 from web_crawler import settings
-from utils.datetime_utils import calculate_time_difference, convert_to_str_time, convert_str_time, convert_str_date
+from utils.datetime_utils import calculate_time_difference, convert_to_str_time, convert_str_date
 from utils.mail_utils import send_email
 from utils.message_utils import get_message
 from utils.pagination import CustomPageNumberPagination
