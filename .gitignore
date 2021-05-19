@@ -5,3 +5,5 @@ web_crawler/venv/
 web_crawler/users/migrations/
 web_crawler/.env
 venv
+.idea/
+web_crawler/debug.log
