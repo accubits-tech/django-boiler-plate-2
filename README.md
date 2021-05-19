@@ -391,4 +391,4 @@ python manage.py runserver
 
 The api link is given below
 
-https://www.getpostman.com/collections/9dbc16c372511f9e809c
+https://documenter.getpostman.com/view/12173007/TzRa5Ndg
